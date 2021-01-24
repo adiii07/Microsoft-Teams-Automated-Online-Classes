@@ -155,7 +155,7 @@ def join_meeting():
 #leaving the meeting
 def leave_meeting():
     global in_meeting
-    participants = 29
+    participants = 29  # this is temporary
 
     if current_time >= end_time[period_num - 1] and participants < 30:
         sleep(1)
