@@ -6,7 +6,7 @@ from time import sleep
 import pandas as pd
 
 #opening browser
-session_data = "user-data-dir=/home/aditya/Documents/Python/Projects/teams_auto/session_data"
+session_data = 'user-data-dir=session_data'
 options = webdriver.ChromeOptions()
 options.add_argument(session_data)
 
@@ -42,11 +42,10 @@ for i in range(6):
     elif current_time >= "14:30":
         period_num = "NoSchool"
     
-
 in_meeting = False
 
 # finding current period
-def find_period():
+def get_period():
     global current_period
 
     if period_num != "break1" and period_num != "break2" and period_num != "NoSchool":
@@ -77,8 +76,6 @@ def find_period():
         print("Debug: School is over")
         browser.quit()
 
-    print(current_period)
-
 # checking if free period    
 def check_free_period():
 
@@ -88,9 +85,9 @@ def check_free_period():
             sleep(600)
             print("Debug: It is still free period")
     else:
+        print('Debug: Current period is {}'.format(current_period))
         team_click()
-
-        
+       
 # clicking the team of current period
 def team_click():
     global team_name
@@ -177,9 +174,7 @@ def leave_meeting():
         print("{} period is going on".format(current_period))
         sleep(600)
 
-    find_period()       
+    get_period()       
 
 
-find_period()
-
-# get participants
+get_period()
