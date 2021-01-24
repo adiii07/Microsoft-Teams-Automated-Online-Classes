@@ -5,6 +5,7 @@ from datetime import datetime
 from time import sleep
 import pandas as pd
 
+#opening browser
 session_data = "user-data-dir=/home/aditya/Documents/Python/Projects/teams_auto/session_data"
 options = webdriver.ChromeOptions()
 options.add_argument(session_data)
@@ -14,7 +15,7 @@ browser.maximize_window()
 browser.get("https://teams.microsoft.com/")
 sleep(5)
 
-
+#reading timetable
 timetable = pd.read_csv("timetable.csv")
 print(timetable)
 
@@ -27,63 +28,70 @@ hour = datetime.now().hour
 minute = datetime.now().minute
 current_time = "{}:{}".format(hour, minute)
 
-#finding current period 
-if "8:00" < current_time <= "9:00": 
-    period_num = 1
-elif "9:00" < current_time <= "10:00":
-    period_num = 2
-elif "10:15" < current_time <= "11:15":
-    period_num = 3
-elif "11:15" < current_time <= "12:15":
-    period_num = 4
-elif "12:30" < current_time <= "13:30":
-    period_num = 5
-elif "13:30" < current_time <= "14:30":
-    period_num = 6
-elif "10:00" < current_time <= "10:15":
-    period_num = "break1"
-elif "12:15" < current_time <= "12:30":
-    period_num = "break2"
-elif current_time >= "14:30":
-    period_num = "NoSchool"
+start_time = ['8:00', '9:00', '10:15', '11:15', '12:30', '13:30']
+end_time   = ['9:00', '10:00', '11:15', '12:15', '13:30', '14:30']
 
-
-end_time = ['9:00', '10:00', '11:15', '12:15', '13:30', '14:30']
-end_time = "13:11"
+# finding period number
+for i in range(6):
+    if start_time[i] < current_time <= end_time[i]:
+        period_num = i+1
+    elif "10:00" < current_time <= "10:15":
+        period_num = "break1"
+    elif "12:15" < current_time <= "12:30":
+        period_num = "break2"
+    elif current_time >= "14:30":
+        period_num = "NoSchool"
+    
 
 in_meeting = False
 
-
-def check_period():
+# finding current period
+def find_period():
     global current_period
 
     if period_num != "break1" and period_num != "break2" and period_num != "NoSchool":
         current_period = timetable[str(period_num)][day_num]
-        team_click()
+        check_free_period()
 
     elif period_num == "break1":
         print("Debug: It is first break")
         while period_num == "break1":
             if current_time > "10:15":
                 current_period = timetable[str(period_num)][day_num]
-                team_click()
+                check_free_period()
             else:
-                sleep(30)
+                sleep(60)
+                print("Debug: It is still break")
 
     elif period_num == "break2":
         print("Debug: It is second break")
         while period_num == "break2":
             if current_time > "12:30":
                 current_period = timetable[str(period_num)][day_num]
-                team_click()
+                check_free_period()
             else:
-                sleep(30)
+                sleep(60)
+                print("Debug: It is still break")
 
     elif period_num == "NoSchool":
         print("Debug: School is over")
         browser.quit()
 
+    print(current_period)
 
+# checking if free period    
+def check_free_period():
+
+    if current_period == "NaN":
+        print("Debug: You have free period")
+        while current_period == 'NaN':
+            sleep(600)
+            print("Debug: It is still free period")
+    else:
+        team_click()
+
+        
+# clicking the team of current period
 def team_click():
     global team_name
 
@@ -100,6 +108,7 @@ def team_click():
                 team.click()
                 sleep(0.5)
                 team.click()
+                print('Debug: {} team selected'.format(team_name))
             except exceptions.NoSuchElementException:
                 browser.find_element_by_xpath('//*[@id="app-bar-2a84919f-59d8-4441-a975-2a8c2643b741"]').click()
                 sleep(1)
@@ -109,7 +118,7 @@ def team_click():
     sleep(3)
     join_meeting()
 
-
+# joining the meeting
 def join_meeting():
     global in_meeting
     global leave_button
@@ -118,11 +127,12 @@ def join_meeting():
         try:
             join_button = browser.find_element_by_css_selector("span[ng-if='!ctrl.roundButton']")
         except exceptions.NoSuchElementException:
-            print("Meeting not started")
-            sleep(5)
+            print("Debug: {} meeting has not started".format(current_period))
+            sleep(15)
         else:
             join_button.click()
             in_meeting = True
+            print("Debug: In {} meeting".format(current_period))
     sleep(2)
     video_button = browser.find_element_by_class_name('style-layer')
     mic_button = browser.find_element_by_xpath('//*[@id="preJoinAudioButton"]/div/button/span[1]')
@@ -145,7 +155,7 @@ def join_meeting():
     leave_button = browser.find_element_by_xpath('//*[@id="hangup-button"]')
     leave_meeting()
 
-
+#leaving the meeting
 def leave_meeting():
     global in_meeting
     participants = 29
@@ -167,11 +177,9 @@ def leave_meeting():
         print("{} period is going on".format(current_period))
         sleep(600)
 
-    check_period()       
+    find_period()       
 
 
-check_period()
+find_period()
 
-# dictionary of start and end timings
 # get participants
-# ask email and pass when run first time 
