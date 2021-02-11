@@ -183,7 +183,7 @@ def leave_meeting():
                 participants = int(members[0].get_attribute('aria-label')[-2:])
 
         if participants > 20:
-            print(f'Debug: {} period if going on')
+            print(f'Debug: {current_period} period if going on')
             sleep(60)
         else:
             print('Debug: Leaving in 10 seconds')
